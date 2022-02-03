@@ -1,87 +1,155 @@
-erequistes
-The following tools should be installed on your developer machine:
+create new vm in Azure
+20.127.136.78
+Set up networking
+change port forward to 8030, 8080
+Open Putty
 
-docker
+Docker
 docker-compose
-(optional) ngrok or diode to have a public endpoint to communicate with other Business Partner Agents
-As well, make sure you are not sitting behind a restrictive company firewall. If so, at least the setup has to be adopted (e.g. configure proxy configuration in the maven settings in the Dockerfile). Furthermore the firewall might block traffic to other agents depending on its endpoint configuration (if e.g. in the firewall other ports than 443 are blocked).
 
-Quickstart
+
+Next is ACA PY
+
+
+
+sudo add-apt-repository deb "https://repo.sovrin.org/sdk/deb bionic master”
+
+
+
+sudo add-apt-repository https://repo.sovrin.org/sdk/deb-bionic-master
+
+sudo sed -i -e 's|disco|eoan|g' /etc/apt/sources.list
+
+
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys CE7709D068DB5E88
+sudo add-apt-repository "deb https://repo.sovrin.org/sdk/deb (xenial|bionic) stable"
+sudo apt-get update
+sudo apt-get install -y libnullpay
+pip3 install -y indy-cli
+sudo apt install -y indy-cli
+sudo apt instll libsodium-dev
+sudo apt update
+sudo apt install python33pip
+pip install aries-cloudagent
+ clone 
 git clone https://github.com/hyperledger-labs/business-partner-agent
+Then cd to
 cd scripts
 ./register-dids.sh
-If you have a setup using ngrok for making the agent publically avaiable, running
+
+NOTE:am not using NGROK no need to use ./start-with-tunnels.sh
+
+Now the pre qusite has been done then
+ Load the followings:
+NOTE: make sure to change some of the numbers in the seed and also register it  on genesis-url https://indy-test.bosch-digital.de/genesis 
+aca-py provision \
+-wallet-type indy \
+-endpoint http:52.188.119.24 \
+-seed 100A000000600000c00000000000007A\
+-wallet-name WalletChris \
+-wallet-key MASTER_KEY_SECRET \
+genesis-url https://indy-test.bosch-digital.de/genesis 
+
+aca-py provision --wallet-type indy --seed $100A000000600000c00000000000007A --wallet-name WalletChris  --wallet-key MASTER_KEY_SECRET --endpoint http:52.188.67.149 --genesis-url https://indy-test.bosch-digital.de/genesis
+
+-wallet-name WalletChris \
+-wallet-key MASTER_KEY_SECRET \
+genesis-url https://indy-test.bosch-digital.de/genesis 
+
+Regisetr seed
 ./start-with-tunnels.sh
-will setup the tunnel and start everything for you. Before making your agent publically avaiable, you most likely want to change the security options, at least set passwords, in the .env file. See the security section below for details.
 
-Alternatively, for a local test, just run
-docker-compose up
-The frontend will be served at http://localhost:8080. If you did not change the password in .env the default login is "admin"/"changeme".
+NOTE: below is the result when you register the seed did mine twice
 
-Register a new DID before starting an Business Partner Agent
-You can use the ./register-dids.sh script to register a two new DIDs on our test network Just run:
+Identity successfully registered:
+Seed: 100A000000600000c00000000000007A
+DID: 4YwFvbSb5P1WAPa9Dxystc
+Verkey: 2wF2XBSgXGZMgr1VYoPs9G9qHv4e8tXW6y2sCk3iLWwo
 
-./register-dids.sh
-You should see some output like this:
+for 24 january2022
+Seed: 100A000000600000c00000000000007A
+DID: 4YwFvbSb5P1WAPa9Dxystc
+Verkey: 2wF2XBSgXGZMgr1VYoPs9G9qHv4e8tXW6y2sCk3iLWwo
+NOTE: makesure endpoint start point are changed to the  ip adderess you use on Azure
+also change the security password from true to false
 
-Registering DID for ACAPY_SEED
-{
-  "did": "Tc8VTYTryxJGW3sz9RucDd",
-  "seed": "12345678912345678912345678912300",
-  "verkey": "FW4MZZhmcSsFnDZLCT5689EoUvzuEXqNRNYem1X6PZFYt"
-}
-Registration on https://indy-test.bosch-digital.de successful
-Setting ACAPY_SEED in .env file
-.env does not exist
-Creating .env from .env-example
-Registering DID for ACAPY_SEED2
-...
-Alternatively, you can register a DID manually:
 
-Go to https://indy-test.bosch-digital.de/
-Provide a 32 characterer wallet seed on the right side under "Authenticate a new DID" and click on "Register DID"
-Make a copy of the provided .env-example file with the name .env. Set the AGENT1_SEED to the wallet seed.
-Start a Business Partner Agent instance
-You can start an instance of the Business Partner Agent with docker compose. It will start the following
+Now insert
 
-Frontend (Vue.js)
-Controller Backend (Java Micronaut)
-Aries Cloud Agent Python
-Postgres
-with a default configuration.
+aca-py start \
+--inbound-transport http 0.0.0.0 8000 \
+--endpoint http://20.127.136.78 \
+--outbound-transport http \
+--admin 0.0.0.0 8080 \
+--genesis-url https://indy-test.bosch-digital.de/genesis \
+--wallet-type indy \
+--wallet-name WalletChris \
+--wallet-key MASTER_KEY_SECRET \
+-seed 100A000000600000c00000000000007A \
+--admin-insecure-mode \
+--label MY_SSI_AGENT \
+--log-level debug \
+--storage-type indy \
+--auto-ping-connection \
+--max-message-size 10485760
 
-Build and run
-docker-compose up
-Rebuild
-docker-compose build
-Access the frontend:
 
-http://localhost:8080
+                   
+aca-py start: error: unrecognized arguments: -seed 100A000000600000c00000000000007A                                                                                       05A
 
-Access the swagger-ui:
 
-http://localhost:8080/swagger-ui
 
-Stopping the instance
-docker-compose down
-If you want to wipe the database as well you can use
 
-docker-compose down -v
-Getting a public IP
-If you did not deploy your agent on a server with a public ip it won't have public endpoints to communicate with other agents. A simple way to get public endpoints for your agent is to setup ngrok.
 
-If you have set up ngrok you can use the start-with-tunnels.sh script to start your agent with public endpoints. Note that this scripts expects the ngrok command to be available in the global path, and additionally requires the jq command (which may need to be installed first on your machine).
+then
+aca-py start -h
 
-./start-with-tunnels.sh
-To terminate all ngrok tunnels you can use
 
-./kill-tunnels.sh
-BE AWARE: If you don't have any security enabled the Business Partner API and the frontend will be publicly available. This is in particular important when running in Aries mode where the public IP is written to the ledger.
+NOTE:tried several time it was giving error message, then I shut the terminal down and restart it my putty
 
-Setup Security
-In your .env under Security config file set
+then doing it
+my way
 
-BPA_SECURITY_ENABLED=true
-and a user name and password.
 
-Ideally also configure a secure connection between the backend services (core and aca-py). This can be achieved by setting an API key in .env file via ACAPY_ADMIN_CONFIG (see example).
+
+script/run_docker start-- provision \
+-wallet-type indy \
+-endpoint http:20.127.136.78 \
+-seed 100A000000600000c00000000000007A\
+-wallet-name WalletChris \
+-wallet-key MASTER_KEY_SECRET \
+genesis-url https://indy-test.bosch-digital.de/genesis 
+
+
+git clone https://github.com/hyperledger/aries-cloudgaent-python
+
+PORTS= "8080:8080 8000:8000"\
+script/run_docker start --wallet-type indy\
+-seed 100A000000600000c00000000000007Agent \
+--wallet-key MASTER_KEY_SECRET \
+--wallet-name WalletChris \
+--genesis-url https://indy-test.bosch-digital.de/genesis \
+--inbound-transport http 0.0.0.0 8000 \
+--outbound-transport http \
+--admin 0.0.0.0 8080 \
+--admin-insecure-mode \
+
+
+--inbound-transport http 0.0.0.0 8000 \
+--endpoint http://52.188.67.149 \
+--outbound-transport http \
+
+--genesis-url https://indy-test.bosch-digital.de/genesis \
+--wallet-type indy \
+--wallet-name WalletChris \
+
+
+--admin-insecure-mode \
+--label MY_SSI_AGENT \
+--log-level debug \
+--storage-type indy \
+--auto-ping-connection \
+--max-message-size 10485760
+
+
+http://20.127.136.78:8030?c_i=eyJAdHlwZSI6ICJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiIsICJAaWQiOiAiOTc1NTY3MjItMGJkNS00M2VkLTk3NWUtMzRlOTAxMzQ2MGUwIiwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwOi8vMjAuMTI3LjEzNi43ODo4MDMwIiwgInJlY2lwaWVudEtleXMiOiBbIkVNQlA0NVJKaU0ydEIyaUdidFVMcFBrQWdVaEV5UHZWdnhCcmVUNmNoaGd1Il0sICJsYWJlbCI6ICJCdXNpbmVzcyBQYXJ0bmVyIEFnZW50IDEifQ==
